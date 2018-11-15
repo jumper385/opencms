@@ -13,9 +13,12 @@ router.route('/')
             .select('name price _id description author')
             .then(response => {
                 let display = response.map((acc) => {
-                    return {
-                        ...acc._doc,
-                        url: `http://${req.headers.host}/api/products/${acc._doc._id}`
+                    if (response.length < 1) res.json(null)
+                    else{
+                        return {
+                            ...acc._doc,
+                            url: `http://${req.headers.host}/api/products/${acc._doc._id}`
+                        }
                     }
                 })
                 res.status(200).json({
@@ -25,7 +28,6 @@ router.route('/')
                         display
                     }
                 })
-                if (response.length < 1) res.json(null)
             })
             .catch(err => {
                 res.status(500).json({
@@ -98,10 +100,7 @@ router.route('/:id')
             })
     })
     .delete((req, res, next) => {
-
-        Product.remove({
-                _id: req.params.id
-            })
+        Product.deleteOne({_id: req.params.id})
             .then(result => res.status(200).json({
                 message:'The Product was Deleted',
                 returnHome:`http://${req.headers.host}/api/products`

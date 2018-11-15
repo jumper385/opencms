@@ -4,11 +4,20 @@ const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const port = 4000
 const app = express()
+const chalk = require('chalk')
+const serverName = 'SERVER'
 
 // MONGODB SETUP
 const password = 'nova'
+// const url = 'mongodb://127.0.0.1:27017/store'
 const url = `mongodb+srv://nova:${password}@sandbox-ztrfz.azure.mongodb.net/test?retryWrites=true`
 mongoose.connect(url,{ useNewUrlParser: true })
+    .then(_=>{
+        console.log(chalk.cyan('Database Connection Established...'))
+    })
+    .catch(err => {
+        console.log(chalk.red('Could not Connect to Database...'))
+    })
 
 // MIDDLE WEAR
 app.use(morgan('dev')) // MORGAN MIDDLEWEAR
@@ -25,8 +34,10 @@ app.use((req,res,next) => { // PREVENTING CORS ERRORS
 })
 
 // ROUTES
+const Orders = require('./routes/orders')
 const Products = require('./routes/products')
 app.use('/api/products', Products)
+app.use('/api/orders', Orders)
 
 // ERROR HANDLING
 app.use((req,res,next) => {
@@ -43,5 +54,5 @@ app.use((err,req,res,next) => {
 
 app.listen(port, (err) => {
     if(err)return console.log('houston... we have a problem')
-    console.log(`We're listening on PORT:${port}`)
+    console.log(chalk.green(`[${serverName}] We're listening on PORT:${port}`))
 })
