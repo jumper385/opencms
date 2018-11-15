@@ -21,6 +21,7 @@ mongoose.connect(url,{ useNewUrlParser: true })
 
 // MIDDLE WEAR
 app.use(morgan('dev')) // MORGAN MIDDLEWEAR
+app.use('/uploads',express.static('uploads')) // SET THE IMAGE STATIC FILE
 app.use(bodyParser.urlencoded({extended:true})) // PARSING URL ENCODED
 app.use(bodyParser.json()) // PARSING JSON
 app.use((req,res,next) => { // PREVENTING CORS ERRORS

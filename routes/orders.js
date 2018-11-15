@@ -10,7 +10,7 @@ const Product = require('../schemas/product.model')
 router.route('/')
     .get((req, res) => {
         Order.find()
-            .select('_id quantity product')
+            .select('date _id quantity product')
             .then(response => {
                 res.status(200).json({
                     orders: response.map(acc => {
@@ -18,6 +18,7 @@ router.route('/')
                             _id: acc._id,
                             product: acc.product,
                             quantity: acc.quantity,
+                            date: acc.date
                         }
                     })
                 })
@@ -31,19 +32,29 @@ router.route('/')
     .post((req, res) => {
         Product.findById(req.body.productID)
             .then(doc => {
-                let new_order = new Order({
-                    _id:new mongoose.Types.ObjectId(),
-                    product:req.body.productID,
-                    quantity:req.body.quantity
-                })
-                    .save()
-                res.status(200).json({
-                    message:'order has been placed'
-                })
+                if(doc){
+                    let new_order = new Order({
+                        _id: new mongoose.Types.ObjectId,
+                        product:req.body.productID,
+                        quantity:req.body.quantity
+                    })
+                    new_order.save()
+                        .then(result => {
+                            console.log(result)
+                            res.status(200).json({
+                                result
+                            })
+                        })
+                        .catch(err => {
+                            res.status(500).json({
+                                error:err.message
+                            })
+                        })
+                }
             })
             .catch(err => {
                 res.status(500).json({
-                    error:'Product Not Found'
+                    error:err.message
                 })
             })
     })
@@ -85,7 +96,7 @@ router.route('/:id')
         Order.findById(req.params.id)
             .then(doc => {
                 Order.deleteOne({_id:req.params.id})
-                    .then(response => {
+                    .then( _ => {
                         res.status(200).json({
                             message:'Order Deleted'
                         })

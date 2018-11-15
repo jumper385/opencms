@@ -2,6 +2,33 @@ const express = require('express')
 const mongoose = require('mongoose')
 const url = require('url')
 const router = express.Router()
+const multer = require('multer')
+const uniqid = require('uniqid')
+
+// MULTER STORAGE ENGINE
+const storage = multer.diskStorage({
+    destination:'./uploads',
+    filename:(req,file,cb)=>{
+        console.log(file.mimetype)
+        cb(null,uniqid.process() + '_' + Date.now() + '_' + file.originalname)
+    }
+})
+
+const fileFilter = (req,file,cb) => {
+    if(file.mimetype == 'image/jpeg' || 'image/png'){
+        cb(null,true)
+    } else {
+        cb(null, false)
+    }
+}
+
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 1024*1024,
+    },
+    fileFilter: fileFilter
+})
 
 // MODELS
 const Product = require('../schemas/product.model')
@@ -10,7 +37,7 @@ const Product = require('../schemas/product.model')
 router.route('/')
     .get((req, res, next) => {
         Product.find()
-            .select('name price _id description author')
+            .select('imgPath demand_amount name price _id description author')
             .then(response => {
                 let display = response.map((acc) => {
                     if (response.length < 1) res.json(null)
@@ -35,11 +62,12 @@ router.route('/')
                 })
             })
     })
-    .post((req, res, next) => {
-        console.log(req.body)
+    .post(upload.single('productImage'),(req, res, next) => {
+        console.log(req.file)
         const product = new Product({
             _id: new mongoose.Types.ObjectId,
-            ...req.body
+            ...req.body,
+            imgPath:`http://${req.headers.host}/${req.file.path}`
         })
 
         product.save()
@@ -61,7 +89,7 @@ router.route('/:id')
     .get((req, res, next) => {
 
         Product.findById(req.params.id)
-            .select('_id price name')
+            .select('imgPath demand_amount name price _id description author')
             .then(part => {
                 res.status(200).json({
                     message:`Your request for '${part.name}' was successful`,
