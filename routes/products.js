@@ -45,7 +45,7 @@ router.route('/')
                     else{
                         return {
                             ...acc._doc,
-                            url: `http://${req.headers.host}/api/products/${acc._doc._id}`
+                            url: `http://${req.headers.host}/api/products/idsearch/${acc._doc._id}`
                         }
                     }
                 })

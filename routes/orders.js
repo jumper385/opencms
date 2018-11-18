@@ -58,7 +58,7 @@ router.route('/')
             })
     })
 
-router.route('/:id')
+router.route('/idsearch/:id')
     .get((req,res) => {
         Order.findById(req.params.id)
             .select('_id product quantity')
