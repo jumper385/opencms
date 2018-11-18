@@ -32,6 +32,7 @@ const upload = multer({
 
 // MODELS
 const Product = require('../schemas/product.model')
+const Order = require('../schemas/order.model')
 
 // Home Route 
 router.route('/')
@@ -85,7 +86,7 @@ router.route('/')
     })
 
 // Search a Product by ID
-router.route('/:id')
+router.route('/idsearch/:id')
     .get((req, res, next) => {
 
         Product.findById(req.params.id)
@@ -136,6 +137,46 @@ router.route('/:id')
             .catch(err => res.status(500).json({
                 error: err.message
             }))
+    })
+
+router.route('/demand')
+    .get((req,res) => {
+        Order.aggregate([
+            {$lookup:{
+                from:'products',
+                localField:'product',
+                foreignField:'_id',
+                as:'book_details'
+            }},
+            {$group:{
+                _id:'$product',
+                total:{$sum:'$quantity'},
+                book_details:{$first: '$book_details'}
+            }},
+            {$project: {
+                book_details:1,
+                _id:0,
+                total:1,
+            }}
+        ])
+            .then(docs => {
+                let display = docs.map(acc => {
+                    return {
+                        name:acc.book_details[0].name,
+                        book_id:acc.book_details[0]._id,
+                        demand_amount:acc.total
+                    }
+                })
+                res.status(200).json({
+                    message:'Order Breakdown (per product)',
+                    order_breakdown:display
+                })
+            })
+            .catch(err => {
+                res.status(500).json({
+                    error:err.message
+                })
+            })
     })
 
 module.exports = router
